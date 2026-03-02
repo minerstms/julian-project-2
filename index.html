@@ -185,8 +185,8 @@
 
       const GRAVITY = 0.35;
       const FLAP_STRENGTH = -8;
-      const STAR_SPEED = 3;
-      const STAR_SPAWN_INTERVAL = 90;
+      const BASE_STAR_SPEED = 3;
+      const BASE_STAR_SPAWN_INTERVAL = 90;
       const PLAYER_WIDTH = 36;
       const PLAYER_HEIGHT = 28;
       const STAR_RADIUS = 18;
@@ -196,6 +196,8 @@
       let player = { x: 80, y: canvas.height / 2 - 20, vy: 0 };
       let stars = [];
       let score = 0;
+      let starSpeed = BASE_STAR_SPEED;
+      let starSpawnInterval = BASE_STAR_SPAWN_INTERVAL;
       let frameCount = 0;
       let animationId = null;
       let musicOn = true;
@@ -309,15 +311,17 @@
         }
 
         frameCount++;
-        if (frameCount % STAR_SPAWN_INTERVAL === 0) spawnStar();
+        if (frameCount % starSpawnInterval === 0) spawnStar();
 
         for (let i = stars.length - 1; i >= 0; i--) {
           const s = stars[i];
-          s.x -= STAR_SPEED;
+          s.x -= starSpeed;
           if (s.x + s.r < player.x && !s.passed) {
             s.passed = true;
             score++;
             scoreDisplay.textContent = score;
+            starSpeed = Math.min(BASE_STAR_SPEED + score * 0.35, 8);
+            starSpawnInterval = Math.max(BASE_STAR_SPAWN_INTERVAL - score * 5, 40);
           }
           if (s.x + s.r < 0) stars.splice(i, 1);
         }
@@ -338,6 +342,8 @@
         player = { x: 80, y: canvas.height / 2 - 20, vy: 0 };
         stars = [];
         score = 0;
+        starSpeed = BASE_STAR_SPEED;
+        starSpawnInterval = BASE_STAR_SPAWN_INTERVAL;
         frameCount = 0;
         scoreDisplay.textContent = '0';
         gameOverPanel.classList.remove('show');
