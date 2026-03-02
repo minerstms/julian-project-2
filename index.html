@@ -1,9 +1,271 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Julian Project 1</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Julian Project 1 — Tap Target</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      min-height: 100dvh;
+      color: #e8e8e8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      overflow-x: hidden;
+    }
+    h1 {
+      font-size: clamp(22px, 5vw, 28px);
+      margin-bottom: 0.5rem;
+      text-align: center;
+      font-weight: 700;
+    }
+    .subtitle {
+      font-size: clamp(18px, 4vw, 24px);
+      opacity: 0.9;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .stats {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      max-width: 360px;
+      margin-bottom: 1.5rem;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: clamp(22px, 4.5vw, 28px);
+      font-weight: 600;
+    }
+    .stat-row span:last-child {
+      color: #00d9ff;
+    }
+    .arena {
+      position: relative;
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 1;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 24px;
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      touch-action: manipulation;
+    }
+    .target {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a);
+      box-shadow: 0 4px 20px rgba(201, 42, 42, 0.6);
+      cursor: pointer;
+      transition: transform 0.1s ease;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border: 4px solid rgba(255, 255, 255, 0.4);
+    }
+    .target:active {
+      transform: translate(-50%, -50%) scale(0.92);
+    }
+    .message {
+      font-size: clamp(22px, 4.5vw, 28px);
+      text-align: center;
+      margin-top: 1rem;
+      min-height: 2.5em;
+      font-weight: 600;
+    }
+    .message.go {
+      color: #69db7c;
+    }
+    .message.miss {
+      color: #ff8787;
+    }
+    .message.start {
+      color: #74c0fc;
+    }
+    .btn {
+      margin-top: 1.5rem;
+      padding: 1rem 2rem;
+      font-size: clamp(22px, 4.5vw, 28px);
+      font-weight: 700;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #339af0, #228be6);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(51, 154, 240, 0.4);
+      touch-action: manipulation;
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .btn.secondary {
+      background: linear-gradient(135deg, #495057, #343a40);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+      margin-top: 0.75rem;
+    }
+    .instructions {
+      font-size: clamp(18px, 3.5vw, 24px);
+      text-align: center;
+      max-width: 360px;
+      margin-top: 1rem;
+      opacity: 0.85;
+      line-height: 1.4;
+    }
+  </style>
 </head>
 <body>
-  <h1>Cloudflare is STILL 3 working 🎉</h1>
+  <h1>Tap Target</h1>
+  <p class="subtitle">Tap the red circle before time runs out</p>
+  <div class="stats">
+    <div class="stat-row"><span>Score</span><span id="score">0</span></div>
+    <div class="stat-row"><span>Time left</span><span id="timer">—</span></div>
+  </div>
+  <div class="arena" id="arena">
+    <div class="target" id="target" aria-label="Target"></div>
+  </div>
+  <p class="message start" id="message">Tap Start to play</p>
+  <button class="btn" id="startBtn" type="button">Start game</button>
+  <button class="btn secondary" id="againBtn" type="button" style="display: none;">Play again</button>
+  <p class="instructions">Each tap scores 1. The target moves every 1.5s. Miss three in a row and the round ends.</p>
+
+  <script>
+    (function () {
+      var arena = document.getElementById("arena");
+      var target = document.getElementById("target");
+      var scoreEl = document.getElementById("score");
+      var timerEl = document.getElementById("timer");
+      var messageEl = document.getElementById("message");
+      var startBtn = document.getElementById("startBtn");
+      var againBtn = document.getElementById("againBtn");
+
+      var score = 0;
+      var timeLeft = 0;
+      var timerId = null;
+      var moveId = null;
+      var missesInRow = 0;
+      var running = false;
+      var ROUND_SEC = 30;
+      var MOVE_MS = 1500;
+      var MAX_MISSES = 3;
+
+      function rand(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function placeTarget() {
+        var r = 40;
+        var w = arena.offsetWidth;
+        var h = arena.offsetHeight;
+        var x = rand(r, w - r);
+        var y = rand(r, h - r);
+        target.style.left = x + "px";
+        target.style.top = y + "px";
+        target.style.transform = "translate(-50%, -50%)";
+      }
+
+      function setMessage(text, className) {
+        messageEl.textContent = text;
+        messageEl.className = "message " + (className || "");
+      }
+
+      function updateUI() {
+        scoreEl.textContent = score;
+        timerEl.textContent = running ? timeLeft + "s" : "—";
+      }
+
+      function endRound(won) {
+        running = false;
+        if (timerId) clearInterval(timerId);
+        if (moveId) clearTimeout(moveId);
+        timerId = null;
+        moveId = null;
+        startBtn.style.display = "none";
+        againBtn.style.display = "block";
+        setMessage(
+          won ? "Time's up! Score: " + score : "Three misses — round over. Score: " + score,
+          won ? "go" : "miss"
+        );
+        updateUI();
+      }
+
+      function tick() {
+        timeLeft--;
+        updateUI();
+        if (timeLeft <= 0) {
+          endRound(true);
+        }
+      }
+
+      function scheduleMove() {
+        if (!running) return;
+        moveId = setTimeout(function () {
+          if (!running) return;
+          missesInRow++;
+          setMessage("Miss! " + (MAX_MISSES - missesInRow) + " left", "miss");
+          if (missesInRow >= MAX_MISSES) {
+            endRound(false);
+            return;
+          }
+          placeTarget();
+          scheduleMove();
+        }, MOVE_MS);
+      }
+
+      function onTargetTap(e) {
+        e.preventDefault();
+        if (!running) return;
+        score++;
+        missesInRow = 0;
+        setMessage("+1", "go");
+        updateUI();
+        placeTarget();
+        if (moveId) clearTimeout(moveId);
+        scheduleMove();
+      }
+
+      target.addEventListener("click", onTargetTap);
+      target.addEventListener("touchend", function (e) {
+        e.preventDefault();
+        onTargetTap(e);
+      }, { passive: false });
+
+      startBtn.addEventListener("click", function () {
+        score = 0;
+        timeLeft = ROUND_SEC;
+        missesInRow = 0;
+        running = true;
+        startBtn.style.display = "none";
+        againBtn.style.display = "none";
+        setMessage("Go!", "go");
+        updateUI();
+        placeTarget();
+        timerId = setInterval(tick, 1000);
+        scheduleMove();
+      });
+
+      againBtn.addEventListener("click", function () {
+        againBtn.style.display = "none";
+        startBtn.style.display = "block";
+        setMessage("Tap Start to play", "start");
+        scoreEl.textContent = "0";
+        timerEl.textContent = "—";
+      });
+    })();
+  </script>
 </body>
 </html>
