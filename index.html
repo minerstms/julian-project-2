@@ -88,10 +88,10 @@
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #c4b5fd, #7c3aed);
+      background: radial-gradient(circle at 30% 30%, #e9d5ff, #a855f7);
       box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35),
-                  0 4px 24px rgba(124, 58, 237, 0.6),
-                  0 0 40px rgba(167, 139, 250, 0.4);
+                  0 4px 24px rgba(168, 85, 247, 0.6),
+                  0 0 40px rgba(233, 213, 255, 0.5);
       cursor: pointer;
       transition: transform 0.12s ease, box-shadow 0.12s ease;
       left: 50%;
@@ -103,15 +103,15 @@
     .target:active {
       transform: translate(-50%, -50%) scale(0.92);
       box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5),
-                  0 2px 12px rgba(124, 58, 237, 0.8),
-                  0 0 24px rgba(167, 139, 250, 0.6);
+                  0 2px 12px rgba(168, 85, 247, 0.8),
+                  0 0 24px rgba(233, 213, 255, 0.6);
     }
     .target.hit {
       animation: target-hit 0.25s ease-out forwards;
     }
     @keyframes target-pulse {
-      0%, 100% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35), 0 4px 24px rgba(124, 58, 237, 0.6), 0 0 40px rgba(167, 139, 250, 0.4); }
-      50% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.25), 0 6px 28px rgba(124, 58, 237, 0.7), 0 0 50px rgba(167, 139, 250, 0.5); }
+      0%, 100% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35), 0 4px 24px rgba(168, 85, 247, 0.6), 0 0 40px rgba(233, 213, 255, 0.5); }
+      50% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.25), 0 6px 28px rgba(168, 85, 247, 0.7), 0 0 50px rgba(233, 213, 255, 0.6); }
     }
     @keyframes target-hit {
       0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
@@ -183,7 +183,7 @@
 </head>
 <body>
   <h1>Tap Target</h1>
-  <p class="subtitle">Tap the purple circle before time runs out</p>
+  <p class="subtitle">Tap the purple circle — it oinks! More time to play.</p>
   <div class="stats">
     <div class="stat-row"><span>Score</span><span id="score">0</span></div>
     <div class="stat-row"><span>Time left</span><span id="timer">—</span></div>
@@ -195,7 +195,7 @@
   <p class="message start" id="message">Tap Start to play</p>
   <button class="btn" id="startBtn" type="button">Start game</button>
   <button class="btn secondary" id="againBtn" type="button" style="display: none;">Play again</button>
-  <p class="instructions">Each tap scores 1. The target moves every 1.5s. Miss three in a row and the round ends.</p>
+  <p class="instructions">Each tap oinks and scores 1. Round is 90 seconds. The target moves every 1.5s. Miss three in a row and the round ends.</p>
 
   <script>
     (function () {
@@ -215,9 +215,36 @@
       var moveId = null;
       var missesInRow = 0;
       var running = false;
-      var ROUND_SEC = 30;
+      var ROUND_SEC = 90;
       var MOVE_MS = 1500;
       var MAX_MISSES = 3;
+      var audioCtx = null;
+
+      function playOink() {
+        try {
+          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          var ctx = audioCtx;
+          var t = ctx.currentTime;
+          var osc1 = ctx.createOscillator();
+          var osc2 = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc1.type = "sawtooth";
+          osc2.type = "sawtooth";
+          osc1.frequency.setValueAtTime(180, t);
+          osc1.frequency.exponentialRampToValueAtTime(90, t + 0.06);
+          osc2.frequency.setValueAtTime(220, t + 0.06);
+          osc2.frequency.exponentialRampToValueAtTime(280, t + 0.14);
+          gain.gain.setValueAtTime(0.15, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(ctx.destination);
+          osc1.start(t);
+          osc1.stop(t + 0.08);
+          osc2.start(t + 0.06);
+          osc2.stop(t + 0.2);
+        } catch (e) {}
+      }
 
       function rand(min, max) {
         return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -296,10 +323,11 @@
       function onTargetTap(e) {
         e.preventDefault();
         if (!running) return;
+        playOink();
         target.classList.add("hit");
         score++;
         missesInRow = 0;
-        setMessage("+1", "go");
+        setMessage("Oink! +1", "go");
         updateUI();
         if (moveId) clearTimeout(moveId);
         setTimeout(function () {
