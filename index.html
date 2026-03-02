@@ -13,10 +13,10 @@
     }
     body {
       font-family: "Segoe UI", system-ui, sans-serif;
-      background: linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      background: linear-gradient(165deg, #1a0a2e 0%, #2d1b4e 35%, #4a2c6a 65%, #3d2463 100%);
       min-height: 100vh;
       min-height: 100dvh;
-      color: #e8e8e8;
+      color: #f0e6ff;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -28,12 +28,15 @@
       margin-bottom: 0.5rem;
       text-align: center;
       font-weight: 700;
+      color: #e9d5ff;
+      text-shadow: 0 0 20px rgba(192, 132, 252, 0.4);
     }
     .subtitle {
       font-size: clamp(18px, 4vw, 24px);
-      opacity: 0.9;
+      opacity: 0.95;
       margin-bottom: 1.5rem;
       text-align: center;
+      color: #ddd6fe;
     }
     .stats {
       display: flex;
@@ -43,6 +46,11 @@
       width: 100%;
       max-width: 360px;
       margin-bottom: 1.5rem;
+      background: rgba(88, 28, 135, 0.35);
+      padding: 1rem 1.25rem;
+      border-radius: 20px;
+      border: 2px solid rgba(192, 132, 252, 0.25);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
     }
     .stat-row {
       display: flex;
@@ -52,34 +60,63 @@
       font-weight: 600;
     }
     .stat-row span:last-child {
-      color: #00d9ff;
+      color: #c4b5fd;
+      text-shadow: 0 0 12px rgba(196, 181, 253, 0.5);
     }
     .arena {
       position: relative;
       width: 100%;
       max-width: 360px;
       aspect-ratio: 1;
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(30, 10, 50, 0.5);
       border-radius: 24px;
-      border: 3px solid rgba(255, 255, 255, 0.15);
+      border: 3px solid rgba(192, 132, 252, 0.3);
+      box-shadow: inset 0 0 40px rgba(88, 28, 135, 0.3), 0 8px 32px rgba(0, 0, 0, 0.3);
       touch-action: manipulation;
+      overflow: hidden;
+    }
+    .arena::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 21px;
+      background: radial-gradient(ellipse at 50% 50%, transparent 0%, rgba(88, 28, 135, 0.15) 100%);
+      pointer-events: none;
     }
     .target {
       position: absolute;
       width: 80px;
       height: 80px;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a);
-      box-shadow: 0 4px 20px rgba(201, 42, 42, 0.6);
+      background: radial-gradient(circle at 30% 30%, #c4b5fd, #7c3aed);
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35),
+                  0 4px 24px rgba(124, 58, 237, 0.6),
+                  0 0 40px rgba(167, 139, 250, 0.4);
       cursor: pointer;
-      transition: transform 0.1s ease;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      border: 4px solid rgba(255, 255, 255, 0.4);
+      border: 4px solid rgba(255, 255, 255, 0.45);
+      animation: target-pulse 1.2s ease-in-out infinite;
     }
     .target:active {
       transform: translate(-50%, -50%) scale(0.92);
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5),
+                  0 2px 12px rgba(124, 58, 237, 0.8),
+                  0 0 24px rgba(167, 139, 250, 0.6);
+    }
+    .target.hit {
+      animation: target-hit 0.25s ease-out forwards;
+    }
+    @keyframes target-pulse {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35), 0 4px 24px rgba(124, 58, 237, 0.6), 0 0 40px rgba(167, 139, 250, 0.4); }
+      50% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.25), 0 6px 28px rgba(124, 58, 237, 0.7), 0 0 50px rgba(167, 139, 250, 0.5); }
+    }
+    @keyframes target-hit {
+      0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.9; }
+      100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
     }
     .message {
       font-size: clamp(22px, 4.5vw, 28px);
@@ -89,13 +126,15 @@
       font-weight: 600;
     }
     .message.go {
-      color: #69db7c;
+      color: #a78bfa;
+      text-shadow: 0 0 16px rgba(167, 139, 250, 0.5);
     }
     .message.miss {
-      color: #ff8787;
+      color: #f5d0fe;
+      text-shadow: 0 0 12px rgba(245, 208, 254, 0.4);
     }
     .message.start {
-      color: #74c0fc;
+      color: #c4b5fd;
     }
     .btn {
       margin-top: 1.5rem;
@@ -105,35 +144,50 @@
       border: none;
       border-radius: 16px;
       cursor: pointer;
-      background: linear-gradient(135deg, #339af0, #228be6);
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
       color: #fff;
-      box-shadow: 0 4px 14px rgba(51, 154, 240, 0.4);
+      box-shadow: 0 4px 20px rgba(124, 58, 237, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
       touch-action: manipulation;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .btn:hover {
+      box-shadow: 0 6px 28px rgba(124, 58, 237, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15) inset;
     }
     .btn:active {
       transform: scale(0.98);
     }
     .btn.secondary {
-      background: linear-gradient(135deg, #495057, #343a40);
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(135deg, #5b21b6, #4c1d95);
+      box-shadow: 0 4px 20px rgba(59, 7, 100, 0.5);
       margin-top: 0.75rem;
+    }
+    .btn.secondary:hover {
+      box-shadow: 0 6px 24px rgba(59, 7, 100, 0.6);
     }
     .instructions {
       font-size: clamp(18px, 3.5vw, 24px);
       text-align: center;
       max-width: 360px;
       margin-top: 1rem;
-      opacity: 0.85;
-      line-height: 1.4;
+      opacity: 0.9;
+      line-height: 1.45;
+      color: #ddd6fe;
+    }
+    .high-score {
+      font-size: clamp(18px, 3.5vw, 24px);
+      margin-top: 0.5rem;
+      color: #c4b5fd;
+      opacity: 0.9;
     }
   </style>
 </head>
 <body>
   <h1>Tap Target</h1>
-  <p class="subtitle">Tap the red circle before time runs out</p>
+  <p class="subtitle">Tap the purple circle before time runs out</p>
   <div class="stats">
     <div class="stat-row"><span>Score</span><span id="score">0</span></div>
     <div class="stat-row"><span>Time left</span><span id="timer">—</span></div>
+    <p class="high-score" id="highScore">Best: 0</p>
   </div>
   <div class="arena" id="arena">
     <div class="target" id="target" aria-label="Target"></div>
@@ -149,11 +203,13 @@
       var target = document.getElementById("target");
       var scoreEl = document.getElementById("score");
       var timerEl = document.getElementById("timer");
+      var highScoreEl = document.getElementById("highScore");
       var messageEl = document.getElementById("message");
       var startBtn = document.getElementById("startBtn");
       var againBtn = document.getElementById("againBtn");
 
       var score = 0;
+      var highScore = parseInt(localStorage.getItem("tapTargetHighScore") || "0", 10);
       var timeLeft = 0;
       var timerId = null;
       var moveId = null;
@@ -168,6 +224,7 @@
       }
 
       function placeTarget() {
+        target.classList.remove("hit");
         var r = 40;
         var w = arena.offsetWidth;
         var h = arena.offsetHeight;
@@ -186,6 +243,15 @@
       function updateUI() {
         scoreEl.textContent = score;
         timerEl.textContent = running ? timeLeft + "s" : "—";
+        highScoreEl.textContent = "Best: " + highScore;
+      }
+
+      function saveHighScore() {
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem("tapTargetHighScore", String(highScore));
+          updateUI();
+        }
       }
 
       function endRound(won) {
@@ -194,10 +260,11 @@
         if (moveId) clearTimeout(moveId);
         timerId = null;
         moveId = null;
+        saveHighScore();
         startBtn.style.display = "none";
         againBtn.style.display = "block";
         setMessage(
-          won ? "Time's up! Score: " + score : "Three misses — round over. Score: " + score,
+          won ? "Time's up! Score: " + score + (score === highScore && score > 0 ? " — New best!" : "") : "Three misses — round over. Score: " + score,
           won ? "go" : "miss"
         );
         updateUI();
@@ -229,13 +296,17 @@
       function onTargetTap(e) {
         e.preventDefault();
         if (!running) return;
+        target.classList.add("hit");
         score++;
         missesInRow = 0;
         setMessage("+1", "go");
         updateUI();
-        placeTarget();
         if (moveId) clearTimeout(moveId);
-        scheduleMove();
+        setTimeout(function () {
+          if (!running) return;
+          placeTarget();
+          scheduleMove();
+        }, 220);
       }
 
       target.addEventListener("click", onTargetTap);
@@ -264,7 +335,10 @@
         setMessage("Tap Start to play", "start");
         scoreEl.textContent = "0";
         timerEl.textContent = "—";
+        updateUI();
       });
+
+      updateUI();
     })();
   </script>
 </body>
