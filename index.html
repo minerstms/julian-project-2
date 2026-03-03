@@ -299,7 +299,7 @@
       }
 
       function spawnStars() {
-        const count = 2 + Math.min(Math.floor(hardnessLevel / 4), 4);
+        const count = 1 + Math.min(Math.floor(hardnessLevel / 10), 1);
         const usedY = [];
         for (let i = 0; i < count; i++) {
           let y;
@@ -307,9 +307,9 @@
           do {
             y = 80 + Math.random() * (canvas.height - 200);
             tries++;
-          } while (tries < 20 && usedY.some(uy => Math.abs(uy - y) < 70));
+          } while (tries < 20 && usedY.some(uy => Math.abs(uy - y) < 90));
           usedY.push(y);
-          const offset = i * 25 - (count * 12);
+          const offset = count === 1 ? 0 : (i * 30 - 15);
           stars.push({
             x: canvas.width + STAR_RADIUS + offset,
             y: y,
@@ -374,7 +374,7 @@
             hardnessLevel += 3;
             scoreDisplay.textContent = score;
             starSpeed = Math.min(BASE_STAR_SPEED + hardnessLevel * 0.2, 9);
-            starSpawnInterval = Math.max(BASE_STAR_SPAWN_INTERVAL - hardnessLevel * 1.5, 35);
+            starSpawnInterval = Math.max(BASE_STAR_SPAWN_INTERVAL - hardnessLevel * 1.2, 55);
           }
           if (s.x + s.r < 0) stars.splice(i, 1);
         }
