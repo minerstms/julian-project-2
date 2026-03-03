@@ -80,18 +80,19 @@
       height: 100%;
       flex: 1;
       background: #0a0a0a;
-      border: none;
-      border-radius: 0;
       overflow: hidden;
       display: flex;
-      align-items: stretch;
-      justify-content: stretch;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 0 0 2px rgba(255, 215, 0, 0.4);
     }
     #game-canvas {
       display: block;
-      width: 100%;
       height: 100%;
+      width: auto;
+      max-width: 100%;
       cursor: pointer;
+      object-fit: contain;
     }
     #score-display {
       position: absolute;
@@ -170,7 +171,7 @@
       <button id="start-btn">Start</button>
     </div>
     <div id="canvas-wrap" style="display: none;">
-      <canvas id="game-canvas" width="400" height="600"></canvas>
+      <canvas id="game-canvas" width="560" height="600"></canvas>
       <div id="score-display">0</div>
       <div id="game-over-panel">
         <h2>Game Over</h2>
