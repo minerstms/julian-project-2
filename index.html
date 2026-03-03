@@ -417,8 +417,10 @@
           if (s.x + s.r < 0) stars.splice(i, 1);
         }
 
-        for (const s of stars) drawStar(s.x, s.y, s.r);
         drawBat(player.x, player.y);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = 1;
+        for (const s of stars) drawStar(s.x, s.y, s.r);
 
         if (hitTest()) {
           gameOver();
