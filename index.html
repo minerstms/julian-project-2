@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Run, Cookie, Run!</title>
+  <title>Escape the Jar!</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     /* Basic single-column, mobile-first layout */
@@ -109,23 +109,28 @@
       let speedIncreasePerSec = 18; // difficulty ramp
       let currentSpeed = baseSpeed;
 
-      // Level themes (change every 30 seconds)
+      // Level themes: Cookie Jar → Kitchen → City → Bakery (change every 30 sec)
       const THEME_DURATION = 30; // seconds
       const Themes = [
+        {
+          name: "Cookie Jar",
+          skyColor: "#e8d4a0",
+          groundColor: "#c4a574",
+        },
         {
           name: "Kitchen",
           skyColor: "#fef2d9",
           groundColor: "#f4d2a1",
         },
         {
-          name: "Backyard",
-          skyColor: "#c7f3ff",
-          groundColor: "#86c57a",
-        },
-        {
           name: "City Street",
           skyColor: "#c8d8f6",
           groundColor: "#9ea4b0",
+        },
+        {
+          name: "Bakery",
+          skyColor: "#f5e6c8",
+          groundColor: "#d4b896",
         },
       ];
       let themeIndex = 0;
@@ -160,13 +165,12 @@
 
       const groundY = GAME_HEIGHT - 90;
 
-      // Hungry kid chasing from behind
+      // Fat boy chasing from behind (catch him = game over)
       const kid = {
-        baseDistance: 260, // ideal gap in px between kid and cookie
-        minDistance: 40, // if below this, cookie is caught
+        baseDistance: 260,
+        minDistance: 40,
         maxDistance: 320,
         distance: 260,
-        // base catch-up speed per second (positive reduces distance)
         creepRate: 3,
       };
 
@@ -257,7 +261,7 @@
 
       function loadHighScore() {
         try {
-          const stored = localStorage.getItem("runCookieRunHighScore");
+          const stored = localStorage.getItem("cookieEscapeHighScore");
           const n = stored ? Number(stored) : 0;
           return Number.isFinite(n) && n >= 0 ? n : 0;
         } catch {
@@ -267,7 +271,7 @@
 
       function saveHighScore(value) {
         try {
-          localStorage.setItem("runCookieRunHighScore", String(value));
+          localStorage.setItem("cookieEscapeHighScore", String(value));
         } catch {
           // ignore if storage unavailable
         }
@@ -350,7 +354,7 @@
 
       function endGame(reason) {
         gameState = State.GAME_OVER;
-        gameOverReason = reason || "Caught!";
+        gameOverReason = reason || "The fat boy got you!";
         shakeTimer = SHAKE_DURATION;
         playCatchSound();
 
@@ -409,53 +413,50 @@
           hit: false,
         };
 
-        if (themeName === "Kitchen") {
+        if (themeName === "Cookie Jar") {
           const choice = Math.random();
           if (choice < 0.4) {
-            // Rolling pin on ground -> low obstacle
+            // Fireball reaching in - jump over
+            obstacle.width = 70;
+            obstacle.height = 50;
+            obstacle.y = groundTop - obstacle.height;
+            obstacle.type = "low";
+            obstacle.kind = "fireball";
+          } else if (choice < 0.75) {
+            // Jar rim / lip
+            obstacle.width = 100;
+            obstacle.height = 22;
+            obstacle.y = groundTop - obstacle.height;
+            obstacle.type = "low";
+            obstacle.kind = "jarRim";
+          } else {
+            // Flame tendril - slide under
+            obstacle.width = 50;
+            obstacle.height = 100;
+            obstacle.y = groundTop - 120;
+            obstacle.type = "high";
+            obstacle.kind = "flameTendril";
+          }
+        } else if (themeName === "Kitchen") {
+          const choice = Math.random();
+          if (choice < 0.4) {
             obstacle.width = 120;
             obstacle.height = 26;
             obstacle.y = groundTop - obstacle.height;
             obstacle.type = "low";
             obstacle.kind = "rollingPin";
           } else if (choice < 0.75) {
-            // Spill puddle - low & wide, mostly cosmetic but still slows
             obstacle.width = 160;
             obstacle.height = 18;
             obstacle.y = groundTop - 6;
             obstacle.type = "low";
             obstacle.kind = "milkPuddle";
           } else {
-            // Falling spoon -> high obstacle
             obstacle.width = 40;
             obstacle.height = 120;
             obstacle.y = groundTop - 140;
             obstacle.type = "high";
             obstacle.kind = "spoon";
-          }
-        } else if (themeName === "Backyard") {
-          const choice = Math.random();
-          if (choice < 0.4) {
-            // Sprinkler head on ground
-            obstacle.width = 70;
-            obstacle.height = 40;
-            obstacle.y = groundTop - obstacle.height;
-            obstacle.type = "low";
-            obstacle.kind = "sprinkler";
-          } else if (choice < 0.75) {
-            // Dog toy (ball/rope)
-            obstacle.width = 60;
-            obstacle.height = 50;
-            obstacle.y = groundTop - obstacle.height;
-            obstacle.type = "low";
-            obstacle.kind = "dogToy";
-          } else {
-            // Garden rake head -> high
-            obstacle.width = 80;
-            obstacle.height = 110;
-            obstacle.y = groundTop - 130;
-            obstacle.type = "high";
-            obstacle.kind = "rake";
           }
         } else if (themeName === "City Street") {
           const choice = Math.random();
@@ -480,6 +481,30 @@
             obstacle.y = groundTop - 150;
             obstacle.type = "high";
             obstacle.kind = "streetSign";
+          }
+        } else if (themeName === "Bakery") {
+          const choice = Math.random();
+          if (choice < 0.4) {
+            // Baking tray on ground
+            obstacle.width = 110;
+            obstacle.height = 28;
+            obstacle.y = groundTop - obstacle.height;
+            obstacle.type = "low";
+            obstacle.kind = "tray";
+          } else if (choice < 0.75) {
+            // Flour sack
+            obstacle.width = 60;
+            obstacle.height = 55;
+            obstacle.y = groundTop - obstacle.height;
+            obstacle.type = "low";
+            obstacle.kind = "flourSack";
+          } else {
+            // Oven door open - slide under
+            obstacle.width = 70;
+            obstacle.height = 100;
+            obstacle.y = groundTop - 115;
+            obstacle.type = "high";
+            obstacle.kind = "ovenDoor";
           }
         }
 
@@ -515,7 +540,7 @@
         cookie.hitSlowTimer = cookie.maxHitSlowTime;
         cookie.hitFlashTimer = 0.35;
 
-        // Kid catches up significantly on each hit
+        // Fat boy catches up on each hit
         kid.distance -= 65;
         if (kid.distance < kid.minDistance) {
           kid.distance = kid.minDistance;
@@ -643,9 +668,9 @@
           handleObstacleHit(o);
         }
 
-        /*** HUNGRY KID DISTANCE ***********************************************/
+        /*** FAT BOY DISTANCE **************************************************/
 
-        // Kid naturally creeps closer over time
+        // Fat boy creeps closer over time
         kid.distance -= kid.creepRate * deltaSec;
 
         // Extra catch-up when slowed
@@ -663,7 +688,7 @@
 
         // If kid reaches cookie ⇒ game over
         if (kid.distance <= kid.minDistance + 1) {
-          endGame("The kid caught the cookie!");
+          endGame("The fat boy caught you!");
         }
 
         /*** SCREEN SHAKE TIMER ***********************************************/
@@ -677,16 +702,29 @@
       /*** RENDERING ***********************************************************/
 
       function drawBackground(theme) {
-        // Sky
+        // Sky / ceiling
         ctx.fillStyle = theme.skyColor;
         ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-        // Far parallax bands
-        ctx.fillStyle = "rgba(0,0,0,0.05)";
-        ctx.fillRect(0, GAME_HEIGHT * 0.18, GAME_WIDTH, 40);
+        // Cookie Jar theme: faint glass curve to suggest jar walls
+        if (theme.name === "Cookie Jar") {
+          ctx.strokeStyle = "rgba(180,160,120,0.25)";
+          ctx.lineWidth = 8;
+          ctx.beginPath();
+          ctx.ellipse(GAME_WIDTH / 2, groundY - 80, GAME_WIDTH * 0.52, 320, 0, 0.2 * Math.PI, 0.8 * Math.PI);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.ellipse(GAME_WIDTH / 2, groundY - 80, GAME_WIDTH * 0.48, 300, 0, 0.25 * Math.PI, 0.75 * Math.PI);
+          ctx.stroke();
+        }
 
-        ctx.fillStyle = "rgba(0,0,0,0.04)";
-        ctx.fillRect(0, GAME_HEIGHT * 0.32, GAME_WIDTH, 30);
+        // Far parallax bands (skip in jar for cleaner look)
+        if (theme.name !== "Cookie Jar") {
+          ctx.fillStyle = "rgba(0,0,0,0.05)";
+          ctx.fillRect(0, GAME_HEIGHT * 0.18, GAME_WIDTH, 40);
+          ctx.fillStyle = "rgba(0,0,0,0.04)";
+          ctx.fillRect(0, GAME_HEIGHT * 0.32, GAME_WIDTH, 30);
+        }
 
         // Ground
         ctx.fillStyle = theme.groundColor;
@@ -828,72 +866,87 @@
       }
 
       function drawKid(theme) {
-        // Kid position determined by distance behind cookie
+        // Fat boy chasing from behind (rounder, chunkier)
         const kidX = cookie.x - kid.distance;
-        const kidY = groundY - 120;
+        const kidY = groundY - 130;
 
-        // If completely off screen, still draw partially to hint presence
         if (kidX < -120) return;
 
         ctx.save();
 
-        // Body
+        // Head (bigger, rounder)
         ctx.fillStyle = "#f2c49b";
-        // Head
         ctx.beginPath();
-        ctx.arc(kidX + 40, kidY + 32, 28, 0, Math.PI * 2);
+        ctx.arc(kidX + 48, kidY + 38, 34, 0, Math.PI * 2);
         ctx.fill();
 
         // Hair
         ctx.fillStyle = "#5c3b20";
         ctx.beginPath();
-        ctx.ellipse(kidX + 40, kidY + 20, 30, 18, 0, 0, Math.PI * 2);
+        ctx.ellipse(kidX + 48, kidY + 22, 36, 20, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Eyes big & goofy
+        // Eyes (hungry for cookies)
         ctx.fillStyle = "#ffffff";
         ctx.beginPath();
-        ctx.arc(kidX + 30, kidY + 30, 7.5, 0, Math.PI * 2);
-        ctx.arc(kidX + 48, kidY + 30, 7.5, 0, Math.PI * 2);
+        ctx.arc(kidX + 38, kidY + 36, 8, 0, Math.PI * 2);
+        ctx.arc(kidX + 58, kidY + 36, 8, 0, Math.PI * 2);
         ctx.fill();
-
         ctx.fillStyle = "#111111";
         const eyeJiggle = Math.sin(elapsedSinceStart * 5) * 1.3;
         ctx.beginPath();
-        ctx.arc(kidX + 30 + 1 + eyeJiggle, kidY + 30 + 1, 3, 0, Math.PI * 2);
-        ctx.arc(kidX + 48 + 2 + eyeJiggle, kidY + 30 + 1, 3, 0, Math.PI * 2);
+        ctx.arc(kidX + 38 + 2 + eyeJiggle, kidY + 36 + 1, 3.5, 0, Math.PI * 2);
+        ctx.arc(kidX + 58 + 2 + eyeJiggle, kidY + 36 + 1, 3.5, 0, Math.PI * 2);
         ctx.fill();
 
-        // Mouth open (hungry!)
+        // Mouth open (want cookie!)
         ctx.fillStyle = "#b0303a";
         ctx.beginPath();
-        ctx.arc(kidX + 39, kidY + 43, 12, 0, Math.PI, false);
+        ctx.arc(kidX + 48, kidY + 52, 14, 0, Math.PI, false);
         ctx.fill();
 
-        // Torso
-        ctx.fillStyle = "#4a7bd4";
-        ctx.fillRect(kidX + 18, kidY + 55, 44, 45);
-
-        // Arms pumping
-        ctx.strokeStyle = "#f2c49b";
-        ctx.lineWidth = 5;
-        const armSwing = Math.sin(elapsedSinceStart * 12) * 10;
+        // Fat torso (wider, round belly)
+        ctx.fillStyle = "#e85a3a";
         ctx.beginPath();
-        ctx.moveTo(kidX + 18, kidY + 62);
-        ctx.lineTo(kidX + 4, kidY + 62 + armSwing);
-        ctx.moveTo(kidX + 62, kidY + 62);
-        ctx.lineTo(kidX + 76, kidY + 62 - armSwing);
+        const tx = kidX + 22;
+        const ty = kidY + 68;
+        const tw = 52;
+        const th = 50;
+        const r = 10;
+        ctx.moveTo(tx + r, ty);
+        ctx.lineTo(tx + tw - r, ty);
+        ctx.quadraticCurveTo(tx + tw, ty, tx + tw, ty + r);
+        ctx.lineTo(tx + tw, ty + th - r);
+        ctx.quadraticCurveTo(tx + tw, ty + th, tx + tw - r, ty + th);
+        ctx.lineTo(tx + r, ty + th);
+        ctx.quadraticCurveTo(tx, ty + th, tx, ty + th - r);
+        ctx.lineTo(tx, ty + r);
+        ctx.quadraticCurveTo(tx, ty, tx + r, ty);
+        ctx.fill();
+        ctx.strokeStyle = "#c04830";
+        ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Legs
-        ctx.strokeStyle = "#2d3f7b";
-        ctx.lineWidth = 6;
-        const legSwing = Math.cos(elapsedSinceStart * 12) * 10;
+        // Chubby arms pumping
+        ctx.strokeStyle = "#f2c49b";
+        ctx.lineWidth = 8;
+        const armSwing = Math.sin(elapsedSinceStart * 12) * 12;
         ctx.beginPath();
-        ctx.moveTo(kidX + 28, kidY + 100);
-        ctx.lineTo(kidX + 28 + legSwing, kidY + 126);
-        ctx.moveTo(kidX + 50, kidY + 100);
-        ctx.lineTo(kidX + 50 - legSwing, kidY + 126);
+        ctx.moveTo(kidX + 22, kidY + 78);
+        ctx.lineTo(kidX + 2, kidY + 78 + armSwing);
+        ctx.moveTo(kidX + 74, kidY + 78);
+        ctx.lineTo(kidX + 94, kidY + 78 - armSwing);
+        ctx.stroke();
+
+        // Short legs (fat boy)
+        ctx.strokeStyle = "#2d2d3b";
+        ctx.lineWidth = 8;
+        const legSwing = Math.cos(elapsedSinceStart * 12) * 8;
+        ctx.beginPath();
+        ctx.moveTo(kidX + 32, kidY + 118);
+        ctx.lineTo(kidX + 32 + legSwing, kidY + 142);
+        ctx.moveTo(kidX + 62, kidY + 118);
+        ctx.lineTo(kidX + 62 - legSwing, kidY + 142);
         ctx.stroke();
 
         ctx.restore();
@@ -902,7 +955,31 @@
       function drawObstacle(o) {
         ctx.save();
 
-        if (o.theme === "Kitchen") {
+        if (o.theme === "Cookie Jar") {
+          if (o.kind === "fireball") {
+            ctx.fillStyle = "#ff6600";
+            ctx.beginPath();
+            ctx.arc(o.x + o.width / 2, o.y + o.height / 2, o.width / 2 - 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#ffaa00";
+            ctx.beginPath();
+            ctx.arc(o.x + o.width / 2 - 6, o.y + o.height / 2 - 6, 12, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (o.kind === "jarRim") {
+            ctx.fillStyle = "#8a9ba8";
+            ctx.fillRect(o.x, o.y, o.width, o.height);
+            ctx.strokeStyle = "rgba(255,255,255,0.4)";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(o.x, o.y, o.width, o.height);
+          } else if (o.kind === "flameTendril") {
+            const g = ctx.createLinearGradient(o.x, o.y, o.x + o.width, o.y + o.height);
+            g.addColorStop(0, "#ff4400");
+            g.addColorStop(0.5, "#ff8800");
+            g.addColorStop(1, "#ff2200");
+            ctx.fillStyle = g;
+            ctx.fillRect(o.x, o.y, o.width, o.height);
+          }
+        } else if (o.theme === "Kitchen") {
           if (o.kind === "rollingPin") {
             ctx.fillStyle = "#c9965b";
             ctx.fillRect(o.x, o.y, o.width, o.height);
@@ -937,51 +1014,6 @@
             );
             ctx.fill();
           }
-        } else if (o.theme === "Backyard") {
-          if (o.kind === "sprinkler") {
-            ctx.fillStyle = "#5b6d7a";
-            ctx.fillRect(o.x + 18, o.y, o.width - 36, o.height);
-            // water arcs
-            ctx.strokeStyle = "rgba(100,180,255,0.7)";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(o.x + 10, groundY - 20, 22, Math.PI * 1.2, Math.PI * 1.9);
-            ctx.arc(
-              o.x + o.width - 10,
-              groundY - 20,
-              22,
-              Math.PI * 1.2,
-              Math.PI * 1.9
-            );
-            ctx.stroke();
-          } else if (o.kind === "dogToy") {
-            ctx.fillStyle = "#f5af3b";
-            ctx.beginPath();
-            ctx.ellipse(
-              o.x + o.width / 2 - 8,
-              o.y + o.height / 2,
-              14,
-              18,
-              0,
-              0,
-              Math.PI * 2
-            );
-            ctx.ellipse(
-              o.x + o.width / 2 + 8,
-              o.y + o.height / 2,
-              14,
-              18,
-              0,
-              0,
-              Math.PI * 2
-            );
-            ctx.fill();
-          } else if (o.kind === "rake") {
-            ctx.fillStyle = "#8a5a2b";
-            ctx.fillRect(o.x + o.width / 2 - 4, o.y, 8, o.height);
-            ctx.fillStyle = "#444b50";
-            ctx.fillRect(o.x, o.y + o.height - 16, o.width, 12);
-          }
         } else if (o.theme === "City Street") {
           if (o.kind === "trashCan") {
             ctx.fillStyle = "#525b66";
@@ -1000,6 +1032,24 @@
             ctx.fillStyle = "#f6cf4a";
             ctx.fillRect(o.x, o.y - 16, o.width, 36);
           }
+        } else if (o.theme === "Bakery") {
+          if (o.kind === "tray") {
+            ctx.fillStyle = "#7a6b5a";
+            ctx.fillRect(o.x, o.y, o.width, o.height);
+            ctx.strokeStyle = "#5a4a3a";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(o.x, o.y, o.width, o.height);
+          } else if (o.kind === "flourSack") {
+            ctx.fillStyle = "#f8f4f0";
+            ctx.fillRect(o.x, o.y, o.width, o.height);
+            ctx.fillStyle = "#e0d8d0";
+            ctx.fillRect(o.x + 4, o.y + 4, o.width - 8, 8);
+          } else if (o.kind === "ovenDoor") {
+            ctx.fillStyle = "#4a4040";
+            ctx.fillRect(o.x, o.y, o.width, o.height);
+            ctx.fillStyle = "#2a2020";
+            ctx.fillRect(o.x + 8, o.y + 8, o.width - 16, o.height - 16);
+          }
         }
 
         ctx.restore();
@@ -1011,7 +1061,7 @@
         // Game title
         ctx.font = "32px system-ui, -apple-system, sans-serif";
         ctx.fillStyle = "rgba(10,10,20,0.9)";
-        ctx.fillText("Run, Cookie, Run!", 26, 42);
+        ctx.fillText("Escape the Jar!", 26, 42);
 
         // Level name
         ctx.font = "24px system-ui, -apple-system, sans-serif";
@@ -1047,9 +1097,27 @@
         ctx.font = "36px system-ui, -apple-system, sans-serif";
         ctx.fillStyle = "#ffffff";
         ctx.fillText(
-          "Run, Cookie, Run!",
+          "Escape the Jar!",
           GAME_WIDTH / 2,
-          GAME_HEIGHT * 0.34
+          GAME_HEIGHT * 0.28
+        );
+
+        ctx.font = "22px system-ui, -apple-system, sans-serif";
+        ctx.fillStyle = "rgba(245,245,245,0.95)";
+        ctx.fillText(
+          "You're in the cookie jar. A fireball's reaching in!",
+          GAME_WIDTH / 2,
+          GAME_HEIGHT * 0.38
+        );
+        ctx.fillText(
+          "Escape to the city, then back to the bakery to save your brothers.",
+          GAME_WIDTH / 2,
+          GAME_HEIGHT * 0.46
+        );
+        ctx.fillText(
+          "Don't let the fat boy catch you!",
+          GAME_WIDTH / 2,
+          GAME_HEIGHT * 0.54
         );
 
         ctx.font = "24px system-ui, -apple-system, sans-serif";
@@ -1057,20 +1125,15 @@
         ctx.fillText(
           "Press Enter to Start",
           GAME_WIDTH / 2,
-          GAME_HEIGHT * 0.46
+          GAME_HEIGHT * 0.64
         );
 
         ctx.font = "22px system-ui, -apple-system, sans-serif";
-        ctx.fillStyle = "rgba(245,245,245,0.9)";
+        ctx.fillStyle = "rgba(245,245,245,0.85)";
         ctx.fillText(
           "SPACE: Jump    ↓: Slide",
           GAME_WIDTH / 2,
-          GAME_HEIGHT * 0.56
-        );
-        ctx.fillText(
-          "Avoid obstacles, don't let the kid catch you!",
-          GAME_WIDTH / 2,
-          GAME_HEIGHT * 0.64
+          GAME_HEIGHT * 0.72
         );
 
         ctx.restore();
@@ -1133,7 +1196,7 @@
 
         drawBackground(theme);
 
-        // Draw kid and cookie
+        // Draw fat boy (chaser) and player cookie
         drawKid(theme);
         drawCookie();
 
